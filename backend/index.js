@@ -1,7 +1,7 @@
 import express from "express";
 import { connectDB } from "./db/connectDB.js";
-const app =express();
-const PORT =process.env.PORT || 5000;
+const app = express();
+const PORT = process.env.PORT || 5000;
 import dotenv from "dotenv";
 import authRoutes from "./routes/auth.route.js"
 

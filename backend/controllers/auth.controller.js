@@ -1,6 +1,7 @@
 import { User } from "../models/user.model.js";
 import bcryptjs  from 'bcryptjs';
-import { generateVerificationCode } from "../utils/generateVerificationCode.js";
+import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
+import { sendVerificationEmail } from "../mailtrap/emails.js";
 
 
 export const signup = async(req,res) =>{
@@ -15,6 +16,9 @@ try {
     
 } 
 const userAlreadyExists = await User.findOne({email});
+console.log("UserAlready Exists",userAlreadyExists);
+
+
 if(userAlreadyExists){
     return res.status(400).json({success: false, message: "User aleredy exists"});
 }
@@ -27,14 +31,30 @@ const user= new User({
     name,
     verificationToken,
     verificationTokenExpiresAt: Date.now() + 24*60*1000
-})
+});
 await user.save();
+
+// Jwt
+generateTokenAndSetCookie(res, user._id);
+
+		await sendVerificationEmail(user.email, verificationToken);
+
+		res.status(201).json({
+			success: true,
+			message: "User created successfully",
+			user: {
+				...user._doc,
+				password: undefined,
+			},
+		});
+
+
 }
 catch (error) {
    res.status(400).json({success: false, message: error.message});
 
 }
-}
+}; 
 
 
 export const login= async(req,res) =>{
